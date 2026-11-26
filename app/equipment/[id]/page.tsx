@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { FavoriteButton } from '@/components/favorite-button';
 
 type Equipment = {
   _id: string;
@@ -131,6 +132,7 @@ export default function EquipmentDetailsPage() {
               {formatPrice(equipment.rentalPrice)}
               <span className="ml-2 text-sm font-normal text-[#a0aec4]">/ {equipment.rentalType.toLowerCase()}</span>
             </p>
+            <FavoriteButton equipmentId={equipment._id} />
             <p className="mt-5 leading-7 text-[#c7cfdd]">{equipment.description}</p>
 
             <dl className="mt-7 grid grid-cols-2 gap-5 border-t border-[#202c42] pt-6 text-sm">
