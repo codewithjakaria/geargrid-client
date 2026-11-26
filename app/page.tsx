@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Reveal } from '@/components/reveal';
 import { FeaturedEquipmentSection } from '@/components/featured-equipment';
+import { EquipmentCategoriesSection } from '@/components/equipment-categories';
 
 export default function HomePage() {
   return (
@@ -51,6 +52,7 @@ export default function HomePage() {
           </div>
         </Reveal>
       </section>
+      <EquipmentCategoriesSection />
       <FeaturedEquipmentSection />
     </main>
   );
