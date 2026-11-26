@@ -24,11 +24,13 @@ export default async function EquipmentPage({ searchParams }: PageProps<'/equipm
   const params = await searchParams;
   const searchValue = Array.isArray(params.search) ? params.search[0] : params.search;
   const categoryValue = Array.isArray(params.category) ? params.category[0] : params.category;
+  const sortValue = Array.isArray(params.sort) ? params.sort[0] : params.sort;
   const search = searchValue?.trim() || '';
   const category = categoryValue?.trim() || '';
+  const sort = sortValue === 'price_asc' || sortValue === 'price_desc' ? sortValue : 'newest';
 
   const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
-  const equipmentQuery = new URLSearchParams({ sort: 'newest' });
+  const equipmentQuery = new URLSearchParams({ sort });
 
   if (search) {
     equipmentQuery.set('search', search);
@@ -88,13 +90,23 @@ export default async function EquipmentPage({ searchParams }: PageProps<'/equipm
             <option value="Electronics">Electronics</option>
             <option value="Event">Event</option>
           </select>
+          <select
+            name="sort"
+            defaultValue={sort}
+            aria-label="Sort equipment"
+            className="rounded-lg border border-[#34425a] bg-[#111a2e] px-4 py-3 text-sm text-white outline-none focus:border-[#ffad00]"
+          >
+            <option value="newest">Newest</option>
+            <option value="price_asc">Price: Low to High</option>
+            <option value="price_desc">Price: High to Low</option>
+          </select>
           <button
             type="submit"
             className="rounded-lg bg-[#ff9d00] px-5 py-3 text-sm font-semibold text-[#111827] transition-colors hover:bg-[#ffb52e]"
           >
-            Search
+            Apply
           </button>
-          {(search || category) && (
+          {(search || category || sort !== 'newest') && (
             <Link href="/equipment" className="self-center text-sm text-[#a0aec4] hover:text-white">
               Clear
             </Link>
