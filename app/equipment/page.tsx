@@ -23,13 +23,19 @@ function formatPrice(price: number) {
 export default async function EquipmentPage({ searchParams }: PageProps<'/equipment'>) {
   const params = await searchParams;
   const searchValue = Array.isArray(params.search) ? params.search[0] : params.search;
+  const categoryValue = Array.isArray(params.category) ? params.category[0] : params.category;
   const search = searchValue?.trim() || '';
+  const category = categoryValue?.trim() || '';
 
   const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
   const equipmentQuery = new URLSearchParams({ sort: 'newest' });
 
   if (search) {
     equipmentQuery.set('search', search);
+  }
+
+  if (category) {
+    equipmentQuery.set('category', category);
   }
 
   let equipment: Equipment[] = [];
@@ -60,7 +66,7 @@ export default async function EquipmentPage({ searchParams }: PageProps<'/equipm
           </p>
         </Reveal>
 
-        <form action="/equipment" method="GET" className="mb-8 flex max-w-2xl gap-3">
+        <form action="/equipment" method="GET" className="mb-8 flex max-w-4xl flex-col gap-3 sm:flex-row">
           <input
             type="search"
             name="search"
@@ -68,13 +74,27 @@ export default async function EquipmentPage({ searchParams }: PageProps<'/equipm
             placeholder="Search equipment, category, or location"
             className="min-w-0 flex-1 rounded-lg border border-[#34425a] bg-[#111a2e] px-4 py-3 text-sm text-white outline-none placeholder:text-[#8290a8] focus:border-[#ffad00]"
           />
+          <select
+            name="category"
+            defaultValue={category}
+            aria-label="Filter by category"
+            className="rounded-lg border border-[#34425a] bg-[#111a2e] px-4 py-3 text-sm text-white outline-none focus:border-[#ffad00]"
+          >
+            <option value="">All categories</option>
+            <option value="Construction">Construction</option>
+            <option value="Photography">Photography</option>
+            <option value="Transport">Transport</option>
+            <option value="Agriculture">Agriculture</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Event">Event</option>
+          </select>
           <button
             type="submit"
             className="rounded-lg bg-[#ff9d00] px-5 py-3 text-sm font-semibold text-[#111827] transition-colors hover:bg-[#ffb52e]"
           >
             Search
           </button>
-          {search && (
+          {(search || category) && (
             <Link href="/equipment" className="self-center text-sm text-[#a0aec4] hover:text-white">
               Clear
             </Link>
@@ -92,7 +112,9 @@ export default async function EquipmentPage({ searchParams }: PageProps<'/equipm
           <>
             <p className="mb-5 text-sm text-[#a0aec4]">
               {equipment.length} {equipment.length === 1 ? 'listing' : 'listings'} found
-              {search ? ` for “${search}”` : ' in the approved catalog'}
+              {search ? ` for “${search}”` : ''}
+              {category ? ` in ${category}` : ''}
+              {!search && !category ? ' in the approved catalog' : ''}
             </p>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
               {equipment.map((item) => (
@@ -144,11 +166,11 @@ export default async function EquipmentPage({ searchParams }: PageProps<'/equipm
         ) : (
           <div className="rounded-xl border border-[#202c42] bg-[#111a2e] p-6">
             <h2 className="text-lg font-semibold">
-              {search ? 'No matching equipment found' : 'No approved equipment yet'}
+              {search || category ? 'No matching equipment found' : 'No approved equipment yet'}
             </h2>
             <p className="mt-2 text-sm text-[#a0aec4]">
-              {search
-                ? 'Try another name, category, or location.'
+              {search || category
+                ? 'Try changing or clearing your search filters.'
                 : 'Approved listings will appear here when they are ready to rent.'}
             </p>
           </div>
