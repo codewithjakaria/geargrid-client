@@ -20,13 +20,23 @@ function formatPrice(price: number) {
   }).format(price);
 }
 
-export default async function EquipmentPage() {
+export default async function EquipmentPage({ searchParams }: PageProps<'/equipment'>) {
+  const params = await searchParams;
+  const searchValue = Array.isArray(params.search) ? params.search[0] : params.search;
+  const search = searchValue?.trim() || '';
+
   const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+  const equipmentQuery = new URLSearchParams({ sort: 'newest' });
+
+  if (search) {
+    equipmentQuery.set('search', search);
+  }
+
   let equipment: Equipment[] = [];
   let hasError = false;
 
   try {
-    const response = await fetch(`${apiUrl}/equipment?sort=newest`, {
+    const response = await fetch(`${apiUrl}/equipment?${equipmentQuery.toString()}`, {
       cache: 'no-store',
     });
 
@@ -50,6 +60,27 @@ export default async function EquipmentPage() {
           </p>
         </Reveal>
 
+        <form action="/equipment" method="GET" className="mb-8 flex max-w-2xl gap-3">
+          <input
+            type="search"
+            name="search"
+            defaultValue={search}
+            placeholder="Search equipment, category, or location"
+            className="min-w-0 flex-1 rounded-lg border border-[#34425a] bg-[#111a2e] px-4 py-3 text-sm text-white outline-none placeholder:text-[#8290a8] focus:border-[#ffad00]"
+          />
+          <button
+            type="submit"
+            className="rounded-lg bg-[#ff9d00] px-5 py-3 text-sm font-semibold text-[#111827] transition-colors hover:bg-[#ffb52e]"
+          >
+            Search
+          </button>
+          {search && (
+            <Link href="/equipment" className="self-center text-sm text-[#a0aec4] hover:text-white">
+              Clear
+            </Link>
+          )}
+        </form>
+
         {hasError ? (
           <div className="rounded-xl border border-[#202c42] bg-[#111a2e] p-6">
             <h2 className="text-lg font-semibold">Equipment could not be loaded</h2>
@@ -60,7 +91,8 @@ export default async function EquipmentPage() {
         ) : equipment.length > 0 ? (
           <>
             <p className="mb-5 text-sm text-[#a0aec4]">
-              {equipment.length} approved {equipment.length === 1 ? 'listing' : 'listings'}
+              {equipment.length} {equipment.length === 1 ? 'listing' : 'listings'} found
+              {search ? ` for “${search}”` : ' in the approved catalog'}
             </p>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
               {equipment.map((item) => (
@@ -111,9 +143,13 @@ export default async function EquipmentPage() {
           </>
         ) : (
           <div className="rounded-xl border border-[#202c42] bg-[#111a2e] p-6">
-            <h2 className="text-lg font-semibold">No approved equipment yet</h2>
+            <h2 className="text-lg font-semibold">
+              {search ? 'No matching equipment found' : 'No approved equipment yet'}
+            </h2>
             <p className="mt-2 text-sm text-[#a0aec4]">
-              Approved listings will appear here when they are ready to rent.
+              {search
+                ? 'Try another name, category, or location.'
+                : 'Approved listings will appear here when they are ready to rent.'}
             </p>
           </div>
         )}
