@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Reveal } from '@/components/reveal';
 import { FeaturedEquipmentSection } from '@/components/featured-equipment';
 import { EquipmentCategoriesSection } from '@/components/equipment-categories';
+import { HowItWorksSection } from '@/components/how-it-works';
 
 export default function HomePage() {
   return (
@@ -54,6 +55,7 @@ export default function HomePage() {
       </section>
       <EquipmentCategoriesSection />
       <FeaturedEquipmentSection />
+      <HowItWorksSection />
     </main>
   );
 }
