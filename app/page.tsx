@@ -6,6 +6,7 @@ import { EquipmentCategoriesSection } from '@/components/equipment-categories';
 import { HowItWorksSection } from '@/components/how-it-works';
 import { WhyGearGridSection } from '@/components/why-geargrid';
 import { CustomerReviewsSection } from '@/components/customer-reviews';
+import { HomeHighlightsSection } from '@/components/home-highlights';
 
 export default function HomePage() {
   return (
@@ -55,6 +56,7 @@ export default function HomePage() {
           </div>
         </Reveal>
       </section>
+      <HomeHighlightsSection />
       <EquipmentCategoriesSection />
       <FeaturedEquipmentSection />
       <HowItWorksSection />
