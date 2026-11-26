@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 
 type LoginResponse = {
   token?: string;
@@ -15,6 +15,15 @@ type LoginResponse = {
   message?: string;
 };
 
+type GoogleLoginResponse = {
+  url?: string;
+  message?: string;
+};
+
+type AuthTokenResponse = {
+  token?: string;
+};
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -22,6 +31,44 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const isGoogleReturn = new URLSearchParams(window.location.search).get('google') === 'success';
+    if (!isGoogleReturn) return;
+
+    async function finishGoogleLogin() {
+      setIsLoading(true);
+
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+
+      try {
+        const response = await fetch(`${apiUrl}/auth/token`, {
+          method: 'GET',
+          credentials: 'include',
+        });
+
+        const result: AuthTokenResponse = await response.json();
+
+        if (!response.ok || !result.token) {
+          setError('Google login finished, but GearGrid could not get your access token. Please try again.');
+          setIsLoading(false);
+          return;
+        }
+
+        localStorage.setItem('geargridToken', result.token);
+        window.history.replaceState({}, '', '/login');
+        setMessage('Login successful. Opening the equipment catalog...');
+        window.setTimeout(() => {
+          router.push('/equipment');
+        }, 700);
+      } catch {
+        setError('Could not connect to GearGrid. Check that the server is running.');
+        setIsLoading(false);
+      }
+    }
+
+    void finishGoogleLogin();
+  }, [router]);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -62,6 +109,39 @@ export default function LoginPage() {
       window.setTimeout(() => {
         router.push('/equipment');
       }, 700);
+    } catch {
+      setError('Could not connect to GearGrid. Check that the server is running.');
+      setIsLoading(false);
+    }
+  }
+
+  async function handleGoogleLogin() {
+    setError('');
+    setMessage('');
+    setIsLoading(true);
+
+    const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+
+    try {
+      const response = await fetch(`${apiUrl}/auth/sign-in/social`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          provider: 'google',
+          callbackURL: `${window.location.origin}/login?google=success`,
+        }),
+      });
+
+      const result: GoogleLoginResponse = await response.json();
+
+      if (!response.ok || !result.url) {
+        setError(result.message || 'Google login is not ready. Check the server Google settings.');
+        setIsLoading(false);
+        return;
+      }
+
+      window.location.href = result.url;
     } catch {
       setError('Could not connect to GearGrid. Check that the server is running.');
       setIsLoading(false);
@@ -116,6 +196,22 @@ export default function LoginPage() {
             {isLoading ? 'Logging in...' : 'Log in'}
           </button>
         </form>
+
+        <div className="my-6 flex items-center gap-3 text-xs text-[#8391a8]">
+          <span className="h-px flex-1 bg-[#34425a]" />
+          <span>OR</span>
+          <span className="h-px flex-1 bg-[#34425a]" />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          disabled={isLoading}
+          className="flex w-full items-center justify-center gap-3 rounded-lg border border-[#34425a] bg-[#0b1223] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#18243a] disabled:cursor-wait disabled:opacity-70"
+        >
+          <span className="text-xl font-bold text-[#4285f4]" aria-hidden="true">G</span>
+          {isLoading ? 'Please wait...' : 'Continue with Google'}
+        </button>
 
         <p className="mt-6 text-center text-sm text-[#a0aec4]">
           New to GearGrid?{' '}
